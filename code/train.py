@@ -35,9 +35,10 @@ def get_train_parameters():
     parser.add_argument("-lr_wr", "--lr_warmup_rate", default=0.1, type=float)
     parser.add_argument("-lr_ws", "--lr_warmup_steps", default=None, type=int)
     parser.add_argument("-e", "--epochs", default=5, type=int)
-    parser.add_argument("-w_dr", "--weight_decay_rate", default=0, type=float)
+    parser.add_argument("-w_dr", "--weight_decay_rate", default=0.0, type=float)
     parser.add_argument("-d", "--device", default="cuda", type=str)
     parser.add_argument("-b_ckpt", "--base_checkpoint_path", default=None, type=str)
+    parser.add_argument("-w_n", "--wandb_name", default="Image_Classification_Project", type=str)
 
     args = parser.parse_args()
 

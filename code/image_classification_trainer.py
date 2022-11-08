@@ -18,18 +18,11 @@ from image_classifier import ImageClassifier
 
 class BaseOperation:
     def __init__(self, loss_function:nn.modules.loss, drop_p:float, device:str, base_ckpt_path: str=None):
-        self.image_sensitive_classifier = ImageClassifier(drop_p, base_model_ckpt=base_ckpt_path)
-        self.image_sensitive_classifier = self.image_sensitive_classifier.to(device)
+        self.image_classifier = ImageClassifier(drop_p, base_model_ckpt=base_ckpt_path)
+        self.image_classifier = self.image_classifier.to(device)
         self.loss_function = loss_function
         
     def calc_loss(self, classifier_result:torch.Tensor, label:torch.Tensor)->torch.Tensor:
-        # print(f"classifier_result : {classifier_result}")
-        # print(f"\t{classifier_result[0][0]}")
-        # print(f"\t{type(classifier_result[0][0])}")
-        # print(f"label : {label}")
-        # print("----------")
-        # print(self.loss_function)
-        # print("----------")
         temp_step_loss = self.loss_function(classifier_result, label)
 
         return temp_step_loss
@@ -64,7 +57,7 @@ class BaseOperation:
         labels = input_batch["label"]
         image_tensors = input_batch["image_tensor"]
 
-        classifier_result = self.image_sensitive_classifier(image_tensors)
+        classifier_result = self.image_classifier(image_tensors)
 
         temp_step_loss = self.calc_loss(classifier_result=classifier_result, label=labels)
         temp_step_acc = self.calc_acc(classifier_result=classifier_result, label=labels)
@@ -73,23 +66,7 @@ class BaseOperation:
 
         return temp_step_loss, temp_step_acc, temp_step_collect_list, temp_d_f1_score, temp_c_f1_score
 
-'''
-    train_arguments:
-        - dropout_percent(float)=0.25
-        - use_loss_weight(bool)=False -> 아래와 상반
-        - use_weight_sampler(bool)=False -> 위와 상반
-        - train_dataset_path(str)
-        - valid_dataset_path(str)
-        - use_custom_normalize(bool) = False => 제거해야 할수(너무 오래 걸림)
-        - train_batch_size(int) = 64
-        - valid_batch_size(int) = 32  
-        - learning_rate(float) = 5e-05 
-        - lr_warmup_rate(float) = 0.1 
-        - lr_warmup_steps(int) = False
-        - epochs(int) = 5
-        - weight_decay_rate(float) = False
-        - device(str) = cuda
-'''
+
 class ImageTrainer:
     def __init__(self, train_arguments:argparse.Namespace, model_save_path:str):
         self.train_arguments = train_arguments
@@ -124,13 +101,12 @@ class ImageTrainer:
             "weight_decay_rate" : self.train_arguments.weight_decay_rate,
             "model_save_dir" : self.model_save_path
         }
-        wandb.init(project = "Mindlogic Image Sensitive Model 221031", 
+        wandb.init(project = self.train_arguments.wandb_name, 
                     config=wandb_init_args)
 
-        wandb.watch(self.classifier_operation.image_sensitive_classifier)
+        wandb.watch(self.classifier_operation.classifier)
 
     def calc_class_f1_score(self, class_f1_score_list:List, base_class_f1_score:List, batch_label_convert_dict:dict, each_class_apperance:List)->Tuple[List, List]:
-        # print(f"\tclass_f1_score_list : {class_f1_score_list}")
 
         for i in range(len(class_f1_score_list)):
             if class_f1_score_list[i] == 0:
@@ -143,7 +119,7 @@ class ImageTrainer:
         return base_class_f1_score, each_class_apperance
 
     def train(self):
-        self.classifier_operation.image_sensitive_classifier.train()
+        self.classifier_operation.image_classifier.train()
 
         train_all_loss = 0
         train_all_acc = 0
@@ -189,7 +165,7 @@ class ImageTrainer:
 
     def valid(self, epoch):
                 
-        self.classifier_operation.image_sensitive_classifier.eval()
+        self.classifier_operation.image_classifier.eval()
         
         valid_all_loss = 0
         valid_all_acc = 0
@@ -233,7 +209,7 @@ class ImageTrainer:
         model_save_dir_path = self.model_save_path
         torch.save({
             "epoch" : epoch,
-            "model_state_dict" : self.classifier_operation.image_sensitive_classifier.state_dict(),
+            "model_state_dict" : self.classifier_operation.image_classifier.state_dict(),
             "optimizer_state_dict" : self.optimizer.state_dict()
         }, os.path.join(model_save_dir_path, f"image_sensitive_{epoch}.pt"))
 
@@ -287,9 +263,9 @@ class ImageTrainer:
 
     def get_optimizer(self, learning_rate:float, weight_decay_rate:float)->AdamW:
         if weight_decay_rate == False:
-            optimizer = AdamW(params= self.classifier_operation.image_sensitive_classifier.parameters(), lr=learning_rate)
+            optimizer = AdamW(params= self.classifier_operation.image_classifier.parameters(), lr=learning_rate)
         else:
-            optimizer = AdamW(params= self.classifier_operation.image_sensitive_classifier.parameters(), lr=learning_rate, weight_decay=weight_decay_rate)
+            optimizer = AdamW(params= self.classifier_operation.image_classifier.parameters(), lr=learning_rate, weight_decay=weight_decay_rate)
 
         return optimizer
 

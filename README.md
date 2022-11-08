@@ -35,6 +35,7 @@ python codes/train.py \
 | epoch | int | epoch use in training | 5 |
 | device | str | device use in training | "cuda" |
 | base_checkpoint_path | str | EfficientNet-B2 base model checkpoint path | None |
+| wandb_name | str | A name using for Wandb project | "Image_Classification_Project" |
 ```
 NOTE) 
 1. Only one of "use_loss_weight" and "use_weight_sampler" can be True.
