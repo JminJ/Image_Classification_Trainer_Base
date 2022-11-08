@@ -1,4 +1,4 @@
-# Image_Classification_Base_Code
+# Image_Classification_Trainer_Base
 ## Intro
 Boilerplate code for Image Classification task. (**using EfficientNet-B2**)
 ## Model Train
