@@ -211,7 +211,7 @@ class ImageTrainer:
             "epoch" : epoch,
             "model_state_dict" : self.classifier_operation.image_classifier.state_dict(),
             "optimizer_state_dict" : self.optimizer.state_dict()
-        }, os.path.join(model_save_dir_path, f"image_sensitive_{epoch}.pt"))
+        }, os.path.join(model_save_dir_path, f"image_classifier_{epoch}.pt"))
 
         print(f"Epoch {epoch} Model Saved.")
 
